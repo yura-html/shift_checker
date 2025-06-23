@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バイト時間表作成ツール</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            background: linear-gradient(to right, #4b6cb7, #182848);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .github-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .github-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #bbdefb;
+            font-size: 0.95rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        
+        .instructions i {
+            color: #1976d2;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .main-content {
+                flex-direction: row;
+            }
+        }
+        
+        .calendar-section {
+            flex: 1;
+            margin-right: 20px;
+        }
+        
+        .preview-section {
+            flex: 0 0 320px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4b6cb7;
+            color: #182848;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #4b6cb7;
+        }
+        
+        .time-table {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            background: white;
+        }
+        
+        .header-cell {
+            background-color: #f5f7fa;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            border-right: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            color: #4a5568;
+        }
+        
+        .day-header {
+            background-color: #4b6cb7;
+            color: white;
+            font-weight: bold;
+            padding: 15px 5px;
+            text-align: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .time-slot {
+            height: 50px;
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .time-slot:hover {
+            background-color: #f0f4ff;
+        }
+        
+        .time-label {
+            background-color: #f5f7fa;
+            padding: 5px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .selected {
+            background-color: #4b6cb7;
+            opacity: 0.7;
+        }
+        
+        .selecting {
+            background-color: #64b5f6;
+            opacity: 0.6;
+        }
+        
+        .preview-box {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.08);
+            min-height: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .preview-item {
+            background-color: #e3f2fd;
+            border-left: 4px solid #4b6cb7;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        
+        .preview-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .delete-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .delete-btn:hover {
+            background-color: #ff5252;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .reset-btn {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        
+        .reset-btn:hover {
+            background-color: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .save-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .export-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .export-btn:hover {
+            background-color: #0b7dda;
+            transform: translateY(-2px);
+        }
+        
+        .empty-message {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .legend-normal {
+            background-color: #64b5f6;
+        }
+        
+        .legend-selected {
+            background-color: #4b6cb7;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .calendar-section {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            
+            .time-table {
+                grid-template-columns: 60px repeat(7, 1fr);
+            }
+            
+            .header-cell, .day-header {
+                padding: 8px 4px;
+                font-size: 0.85rem;
+            }
+            
+            .time-label {
+                font-size: 0.8rem;
+            }
+            
+            .github-link {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-top: 15px;
+                width: fit-content;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="https://github.com/" class="github-link" target="_blank">
+                <i class="fab fa-github"></i> GitHubで公開
+            </a>
+            <h1><i class="fas fa-calendar-alt"></i> バイト時間表作成ツール</h1>
+            <p class="subtitle">ドラッグ操作で簡単にシフト希望を登録・管理できます</p>
+        </header>
+        
+        <div class="instructions">
+            <div class="instruction-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>PC: マウスでドラッグして選択</span>
+            </div>
+            <div class="instruction-item">
+                <i class="fas fa-hand-pointer"></i>
+                <span>スマホ: タッチしてスワイプ</span>
+            </div>
+            <div class="instruction-item">
+                <i class="fas fa-edit"></i>
+                <span>右のプレビューで編集可能</span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="calendar-section">
+                <h2 class="section-title">
+                    <i class="fas fa-table"></i> シフト希望表
+                </h2>
+                <div class="time-table" id="timeTable">
+                    <!-- ヘッダー部分 -->
+                    <div class="header-cell"></div>
+                    <div class="day-header">月</div>
+                    <div class="day-header">火</div>
+                    <div class="day-header">水</div>
+                    <div class="day-header">木</div>
+                    <div class="day-header">金</div>
+                    <div class="day-header">土</div>
+                    <div class="day-header">日</div>
+                    
+                    <!-- 時間帯部分 -->
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-normal"></div>
+                        <span>選択中</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-selected"></div>
+                        <span>確定済み</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <h2 class="section-title">
+                    <i class="fas fa-eye"></i> プレビュー
+                </h2>
+                <div class="preview-box" id="previewBox">
+                    <div class="empty-message">選択した時間帯がここに表示されます</div>
+                </div>
+                <div class="controls">
+                    <button class="btn reset-btn" id="resetBtn">
+                        <i class="fas fa-trash-alt"></i> リセット
+                    </button>
+                    <button class="btn save-btn" id="saveBtn">
+                        <i class="fas fa-save"></i> 保存
+                    </button>
+                    <button class="btn export-btn" id="exportBtn">
+                        <i class="fas fa-download"></i> 出力
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>バイト時間表作成ツール &copy; 2023 - ドラッグ操作で簡単にシフト希望を登録</p>
+            <p>このツールはGitHub Pagesで簡単に公開できます</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeTable = document.getElementById('timeTable');
+            const previewBox = document.getElementById('previewBox');
+            const resetBtn = document.getElementById('resetBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            
+            const days = ['月', '火', '水', '木', '金', '土', '日'];
+            const startHour = 6;
+            const endHour = 22;
+            const hours = Array.from({length: endHour - startHour + 1}, (_, i) => i + startHour);
+            
+            let isSelecting = false;
+            let startCell = null;
+            let selectedCells = [];
+            let confirmedSelections = [];
+            
+            // タイムテーブルの作成
+            hours.forEach(hour => {
+                const timeLabel = document.createElement('div');
+                timeLabel.className = 'time-label';
+                timeLabel.textContent = `${hour}:00`;
+                timeTable.appendChild(timeLabel);
+                
+                days.forEach((_, dayIndex) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'time-slot';
+                    cell.dataset.day = dayIndex;
+                    cell.dataset.hour = hour;
+                    
+                    // マウス/タッチイベントの設定
+                    cell.addEventListener('mousedown', startSelection);
+                    cell.addEventListener('touchstart', startSelection);
+                    
+                    cell.addEventListener('mouseover', continueSelection);
+                    cell.addEventListener('touchmove', continueSelection);
+                    
+                    timeTable.appendChild(cell);
+                });
+            });
+            
+            // マウス/タッチの終了イベント
+            document.addEventListener('mouseup', endSelection);
+            document.addEventListener('touchend', endSelection);
+            
+            // リセットボタン
+            resetBtn.addEventListener('click', resetSelections);
+            
+            // 保存ボタン
+            saveBtn.addEventListener('click', saveSelections);
+            
+            // エクスポートボタン
+            exportBtn.addEventListener('click', exportSelections);
+            
+            // 選択開始
+            function startSelection(e) {
+                e.preventDefault();
+                isSelecting = true;
+                startCell = this;
+                
+                // 既存の選択中状態をクリア
+                clearSelectingState();
+                
+                // このセルを選択中状態にする
+                this.classList.add('selecting');
+                selectedCells = [this];
+            }
+            
+            // 選択継続
+            function continueSelection(e) {
+                if (!isSelecting) return;
+                
+                // タッチイベントの場合
+                let targetCell;
+                if (e.type === 'touchmove') {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    targetCell = document.elementFromPoint(touch.clientX, touch.clientY);
+                } else {
+                    targetCell = this;
+                }
+                
+                if (!targetCell || !targetCell.classList.contains('time-slot')) return;
+                
+                // 既存の選択中状態をクリア
+                clearSelectingState();
+                
+                // 新しい選択範囲を計算
+                const startDay = parseInt(startCell.dataset.day);
+                const startHour = parseInt(startCell.dataset.hour);
+                const endDay = parseInt(targetCell.dataset.day);
+                const endHour = parseInt(targetCell.dataset.hour);
+                
+                const minDay = Math.min(startDay, endDay);
+                const maxDay = Math.max(startDay, endDay);
+                const minHour = Math.min(startHour, endHour);
+                const maxHour = Math.max(startHour, endHour);
+                
+                // すべてのセルをループして選択範囲を決定
+                const cells = document.querySelectorAll('.time-slot');
+                selectedCells = [];
+                
+                cells.forEach(cell => {
+                    const cellDay = parseInt(cell.dataset.day);
+                    const cellHour = parseInt(cell.dataset.hour);
+                    
+                    if (cellDay >= minDay && cellDay <= maxDay && 
+                        cellHour >= minHour && cellHour <= maxHour) {
+                        cell.classList.add('selecting');
+                        selectedCells.push(cell);
+                    }
+                });
+            }
+            
+            // 選択終了
+            function endSelection() {
+                if (!isSelecting) return;
+                isSelecting = false;
+                
+                // 選択されたセルを確定状態に変更
+                selectedCells.forEach(cell => {
+                    cell.classList.remove('selecting');
+                    cell.classList.add('selected');
+                });
+                
+                // 選択を保存
+                if (selectedCells.length > 0) {
+                    const firstCell = selectedCells[0];
+                    const lastCell = selectedCells[selectedCells.length - 1];
+                    
+                    const selection = {
+                        dayStart: parseInt(firstCell.dataset.day),
+                        dayEnd: parseInt(lastCell.dataset.day),
+                        hourStart: parseInt(firstCell.dataset.hour),
+                        hourEnd: parseInt(lastCell.dataset.hour),
+                        cells: selectedCells.map(cell => ({
+                            day: parseInt(cell.dataset.day),
+                            hour: parseInt(cell.dataset.hour)
+                        }))
+                    };
+                    
+                    confirmedSelections.push(selection);
+                    updatePreview();
+                }
+                
+                selectedCells = [];
+            }
+            
+            // 選択中状態をクリア
+            function clearSelectingState() {
+                const selectingCells = document.querySelectorAll('.time-slot.selecting');
+                selectingCells.forEach(cell => {
+                    cell.classList.remove('selecting');
+                });
+            }
+            
+            // プレビューを更新
+            function updatePreview() {
+                if (confirmedSelections.length === 0) {
+                    previewBox.innerHTML = '<div class="empty-message">選択した時間帯がここに表示されます</div>';
+                    return;
+                }
+                
+                previewBox.innerHTML = '';
+                
+                confirmedSelections.forEach((selection, index) => {
+                    const dayStart = days[selection.dayStart];
+                    const dayEnd = days[selection.dayEnd];
+                    const hourStart = selection.hourStart;
+                    const hourEnd = selection.hourEnd;
+                    
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    
+                    const daysText = selection.dayStart === selection.dayEnd ? 
+                        `${dayStart}曜日` : 
+                        `${dayStart}～${dayEnd}曜日`;
+                    
+                    previewItem.innerHTML = `
+                        <div>
+                            <strong>${daysText}</strong><br>
+                            ${hourStart}:00 〜 ${hourEnd + 1}:00
+                        </div>
+                        <button class="delete-btn" data-index="${index}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    
+                    previewBox.appendChild(previewItem);
+                });
+                
+                // 削除ボタンにイベントを設定
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.dataset.index);
+                        deleteSelection(index);
+                    });
+                });
+            }
+            
+            // 選択を削除
+            function deleteSelection(index) {
+                // ビジュアルから削除
+                confirmedSelections[index].cells.forEach(cell => {
+                    const cellElement = document.querySelector(`.time-slot[data-day="${cell.day}"][data-hour="${cell.hour}"]`);
+                    if (cellElement) {
+                        cellElement.classList.remove('selected');
+                    }
+                });
+                
+                // 配列から削除
+                confirmedSelections.splice(index, 1);
+                
+                // プレビューを更新
+                updatePreview();
+            }
+            
+            // リセット
+            function resetSelections() {
+                if (confirmedSelections.length === 0) return;
+                
+                if (confirm('すべての選択をリセットしますか？')) {
+                    confirmedSelections = [];
+                    document.querySelectorAll('.time-slot.selected').forEach(cell => {
+                        cell.classList.remove('selected');
+                    });
+                    updatePreview();
+                }
+            }
+            
+            // 保存
+            function saveSelections() {
+                if (confirmedSelections.length === 0) {
+                    alert('選択された時間帯がありません');
+                    return;
+                }
+                
+                // ローカルストレージに保存
+                localStorage.setItem('shiftSelections', JSON.stringify(confirmedSelections));
+                alert('シフト希望が保存されました！');
+            }
+            
+            // エクスポート
+            function exportSelections() {
+                if (confirmedSelections.length === 0) {
+                    alert('出力するデータがありません');
+                    return;
+                }
+                
+                let output = "バイトシフト希望表\n\n";
+                output += "選択された時間帯:\n";
+                
+                confirmedSelections.forEach((selection, index) => {
+                    const dayStart = days[selection.dayStart];
+                    const dayEnd = days[selection.dayEnd];
+                    const daysText = selection.dayStart === selection.dayEnd ? 
+                        `${dayStart}曜日` : 
+                        `${dayStart}～${dayEnd}曜日`;
+                    
+                    output += `- ${daysText}: ${selection.hourStart}:00 〜 ${selection.hourEnd + 1}:00\n`;
+                });
+                
+                output += "\n作成日: " + new Date().toLocaleDateString();
+                
+                // 新しいウィンドウで表示
+                const win = window.open();
+                win.document.write('<pre>' + output + '</pre>');
+                win.document.title = 'シフト希望表エクスポート';
+            }
+            
+            // ページ読み込み時に保存データがあれば復元
+            function loadSavedSelections() {
+                const savedSelections = localStorage.getItem('shiftSelections');
+                if (savedSelections) {
+                    confirmedSelections = JSON.parse(savedSelections);
+                    
+                    // ビジュアルの復元
+                    confirmedSelections.forEach(selection => {
+                        selection.cells.forEach(cell => {
+                            const cellElement = document.querySelector(`.time-slot[data-day="${cell.day}"][data-hour="${cell.hour}"]`);
+                            if (cellElement) {
+                                cellElement.classList.add('selected');
+                            }
+                        });
+                    });
+                    
+                    updatePreview();
+                }
+            }
+            
+            // 保存データの読み込み
+            loadSavedSelections();
+        });
+    </script>
+</body>
+</html>
